@@ -8,8 +8,8 @@ from flask import Flask, jsonify
 
 class Blockchain:
     def __init__(self):
-        self.chain = []                                   # Init blockchain
-        self.create_block(proof=1, previous_hash='0')     # Init Genesis block
+        self.chain = []  # Init blockchain
+        self.create_block(proof=1, previous_hash='0')  # Init Genesis block
 
     def create_block(self, proof, previous_hash):
         block = {'index': len(self.chain) + 1,
@@ -52,3 +52,29 @@ class Blockchain:
             previous_block = block
             block_index += 1
         return True
+
+
+# Flask web app
+
+app = Flask(__name__)
+
+blockchain = Blockchain()
+
+
+@app.route('/mine_block', methods=['GET'])
+def mine_block():
+    previous_block = blockchain.get_previous_block()
+    previous_proof = previous_block['proof']
+    proof = blockchain.proof_of_work(previous_proof)
+    previous_hash = blockchain.hash(previous_block)
+    block = blockchain.create_block(proof, previous_hash)
+    response = {'message': 'Congratulations, you just mined a block!',
+                'index': block['index'],
+                'datetime': block['datetime'],
+                'proof': block['proof'],
+                'previous_hash': block['previous_hash']}
+    return jsonify(response), 200
+
+@app.route('/get_chain', methods = ['GET'])
+def get_chain():
+
